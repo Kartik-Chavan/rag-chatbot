@@ -1,0 +1,36 @@
+rag-chatbot/
+│
+├── app.py                     # Streamlit UI entry point
+│
+├── config/
+│   ├── settings.py             # Model, embedding, vector DB configs
+│   └── prompts.py              # System & RAG prompts
+│
+├── data/
+│   ├── raw/                    # Original PDFs, DOCs, TXT files
+│   ├── processed/              # Cleaned & chunked text
+│   └── metadata.json           # Optional doc metadata
+│
+├── ingestion/
+│   ├── loader.py               # Load PDFs / DOCs / URLs
+│   ├── splitter.py             # Chunking logic
+│   └── ingest.py               # Push data into vector DB
+│
+├── embeddings/
+│   └── embedder.py             # Embedding model wrapper
+│
+├── vectorstore/
+│   ├── db.py                   # FAISS / Chroma / Pinecone init
+│   └── retriever.py            # Top-k retrieval logic
+│
+├── llm/
+│   └── rag_chain.py            # RAG pipeline (retrieve → generate)
+│
+├── utils/
+│   ├── logger.py
+│   ├── helpers.py
+│   └── cache.py
+│
+├── requirements.txt
+├── .env                        # API keys
+└── README.md

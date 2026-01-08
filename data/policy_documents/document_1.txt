@@ -1,0 +1,10 @@
+ABC Corporation Policy Document (Effective: Jan 07, 2026, ID: ABC-POL-2026-001, v1.0)
+ — Comprehensive internal policy manual covering: (1) Personnel & Employment: at-will employment, 
+ 90-day probation, biweekly pay, 18-day PTO accrual, 12-week parental leave (8 weeks paid @60%), and progressive discipline. 
+ (2) Workplace Safety & Conduct: mandatory safety training, anti-harassment reporting via ext. 2121, zero-tolerance drug/alcohol 
+ policy with random testing, and business-professional dress code. 
+ (3) Technology & Security: GDPR/CCPA-compliant data handling, 
+ BYOD with $25/month stipend, strict social media guidelines, and breach reporting within 24h.
+  (4) Operations: expense reimbursement (meals ≤$50/day), conflict-of-interest disclosures, travel caps ($250/night hotel), and document retention (7 years for financial records). 
+  (5) Administrative: confidential internal use only, employee acknowledgment required, and annual policy review cycle. Violations may result in warnings, suspension, or termination.
+   Approved by Policy Committee (CEO, General Counsel, HR Director, Compliance Officer).
