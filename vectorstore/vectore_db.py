@@ -6,6 +6,9 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from config.settings import VECTOR_DB_PATH
 from llm.chunking_agent import get_chunking_config
+import os
+from db_logger.mongo_logger import MongoLogger
+logger = MongoLogger()
 
 
 VECTORSTORE_PATH = Path(VECTOR_DB_PATH)
@@ -48,45 +51,82 @@ def ingest_policy_pdf(
 ):
     vectorstore = get_db(embeddings)
 
-    # 🔥 Remove old document chunks
-    vectorstore.delete(where={"file_id": file_id}) # For single policy file 
-    #vectorstore.delete(where={"source": source_name}) # For Multiple policy files 
-    vectorstore.persist()
+    try:
+        # 🔔 Log start
+        logger.log_policy({
+            "event": "policy_ingest_start",
+            "file_name": source_name,
+            "file_id": file_id,
+            "file_size_kb": round(os.path.getsize(pdf_path) / 1024, 2)
+        })
 
-    # 1️⃣ Load document
-    loader = PyMuPDFLoader(str(pdf_path))
-    docs = loader.load()
+        # 🔥 Remove old document chunks
+        vectorstore.delete(where={"file_id": file_id})
+        vectorstore.persist()
 
-    full_text = ""
-    for doc in docs:
-        doc.page_content = clean_text(doc.page_content)
-        full_text += doc.page_content + "\n"
+        logger.log_policy({
+            "event": "policy_delete",
+            "file_name": source_name,
+            "file_id": file_id,
+            "status": "old_chunks_removed"
+        })
 
-    # 2️⃣ Agent decides chunking strategy
-    chunk_config = get_chunking_config(llm, full_text)
+        # 1️⃣ Load document
+        loader = PyMuPDFLoader(str(pdf_path))
+        docs = loader.load()
 
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_config["chunk_size"],
-        chunk_overlap=chunk_config["chunk_overlap"],
-        separators=chunk_config["separators"]
-    )
+        full_text = ""
+        for doc in docs:
+            doc.page_content = clean_text(doc.page_content)
+            full_text += doc.page_content + "\n"
 
-    split_docs = splitter.split_documents(docs)
+        # 2️⃣ Agent decides chunking strategy
+        chunk_config = get_chunking_config(llm, full_text)
 
-    # 3️⃣ Add metadata
-    enriched_docs = [
-        Document(
-            page_content=doc.page_content,
-            metadata={
-                "source": source_name,
-                "file_id": file_id
-            }
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_config["chunk_size"],
+            chunk_overlap=chunk_config["chunk_overlap"],
+            separators=chunk_config["separators"]
         )
-        for doc in split_docs
-    ]
 
-    # 4️⃣ Store in Chroma
-    vectorstore.add_documents(enriched_docs)
-    vectorstore.persist()
+        split_docs = splitter.split_documents(docs)
 
-    return vectorstore
+        # 3️⃣ Add metadata
+        enriched_docs = [
+            Document(
+                page_content=doc.page_content,
+                metadata={
+                    "source": source_name,
+                    "file_id": file_id
+                }
+            )
+            for doc in split_docs
+        ]
+
+        # 4️⃣ Store in Chroma
+        vectorstore.add_documents(enriched_docs)
+        vectorstore.persist()
+
+        # ✅ Log success
+        logger.log_policy({
+            "event": "policy_ingest_success",
+            "file_name": source_name,
+            "file_id": file_id,
+            "chunk_count": len(enriched_docs),
+            "chunk_size": chunk_config["chunk_size"],
+            "chunk_overlap": chunk_config["chunk_overlap"],
+            "status": "success"
+        })
+
+        return vectorstore
+
+    except Exception as e:
+        # ❌ Log failure
+        logger.log_policy({
+            "event": "policy_ingest_failure",
+            "file_name": source_name,
+            "file_id": file_id,
+            "error_message": str(e),
+            "status": "failed"
+        })
+        raise

@@ -2,3 +2,5 @@
 menv/
 venv/
 .env
+# Mongo DB certificate file
+X509-cert-653997579436996077.pem

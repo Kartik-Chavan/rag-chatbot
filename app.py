@@ -6,7 +6,8 @@ from config.settings import POLICY_DOCS_DIR
 from vectorstore.vectore_db import ingest_policy_pdf
 from llm.rag_chat_bot import llm
 from vectorstore.retriever import embeddings
-
+from dotenv import load_dotenv
+load_dotenv()
 from llm.rag_chat_bot import ask_ai, app  # app = compiled LangGraph
 from utils.session_db import (
     init_session_db,

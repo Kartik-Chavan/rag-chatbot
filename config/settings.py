@@ -1,5 +1,21 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+# =========================
+# MONGODB SETTINGS
+# =========================
+# Load environment variables first
+load_dotenv()
+
+
+MONGODB_URI = os.getenv("MONGODB_URI")
+MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "rag_chatbot_logs")
+MONGODB_CERT_PATH = os.getenv("MONGODB_CERT_PATH")
+
+LOG_COLLECTION_CHAT = "chat_logs"
+LOG_COLLECTION_POLICY = "policy_logs"
+LOG_COLLECTION_ERROR = "error_logs"
+
 
 # =========================
 # PROJECT ROOT
