@@ -1,6 +1,10 @@
 import streamlit as st
 import uuid
-
+from pathlib import Path
+from config.settings import POLICY_DOCS_DIR
+from vectorstore.vectore_db import ingest_policy_pdf
+from llm.rag_chat_bot import llm
+from vectorstore.retriever import embeddings
 
 from llm.rag_chat_bot import ask_ai, app  # app = compiled LangGraph
 from utils.session_db import (
@@ -11,6 +15,7 @@ from utils.session_db import (
     rename_session
 
 )
+POLICY_DOCS_DIR.mkdir(parents=True, exist_ok=True)
 
 st.markdown(
     """
@@ -35,7 +40,48 @@ init_session_db()
 if "thread_id" not in st.session_state:
     st.session_state.thread_id = None
 
-# -------- Sidebar --------
+
+# ---------------- Sidebar ----------------
+with st.sidebar:
+    st.header("📄 Policy Management")
+
+    uploaded_file = st.file_uploader(
+        "Upload / Update Policy Document",
+        type=["pdf"],
+        accept_multiple_files=False,
+        key="policy_uploader"
+    )
+
+    # Reset guard when uploader is cleared
+    if uploaded_file is None:
+        st.session_state.policy_processed = False
+
+    if uploaded_file and not st.session_state.policy_processed:
+        policy_path = POLICY_DOCS_DIR / uploaded_file.name
+
+        with open(policy_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+
+        with st.spinner("Processing policy document..."):
+            ingest_policy_pdf(
+                llm=llm,
+                embeddings=embeddings,
+                pdf_path=policy_path,
+                source_name=uploaded_file.name,
+                file_id="active_policy"
+            )
+
+        st.session_state.policy_processed = True
+        st.success("Policy document uploaded and indexed successfully ✅")
+
+        # Clear uploader + prevent reprocessing
+        st.rerun()
+
+
+    st.divider()
+
+
+
 with st.sidebar:
     st.header("Chats")
 
