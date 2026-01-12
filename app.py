@@ -1,5 +1,6 @@
 import streamlit as st
 import uuid
+import time
 from pathlib import Path
 from config.settings import POLICY_DOCS_DIR
 from vectorstore.vectore_db import ingest_policy_pdf
@@ -16,6 +17,13 @@ from utils.session_db import (
 
 )
 POLICY_DOCS_DIR.mkdir(parents=True, exist_ok=True)
+
+if "show_policy_success" not in st.session_state:
+    st.session_state.show_policy_success = False
+
+
+if "show_policy_success" not in st.session_state:
+    st.session_state.show_policy_success = False
 
 st.markdown(
     """
@@ -43,6 +51,18 @@ if "thread_id" not in st.session_state:
 
 # ---------------- Sidebar ----------------
 with st.sidebar:
+    st.header("📄 Available Policy Documents")
+
+    policy_files = list(POLICY_DOCS_DIR.glob("*.pdf"))
+
+    if policy_files:
+        for pdf in policy_files:
+            st.markdown(f"📄 {pdf.name}")
+    else:
+        st.info("No policy documents uploaded yet.")
+    st.divider()
+
+with st.sidebar:
     st.header("📄 Policy Management")
 
     uploaded_file = st.file_uploader(
@@ -58,6 +78,12 @@ with st.sidebar:
 
     if uploaded_file and not st.session_state.policy_processed:
         policy_path = POLICY_DOCS_DIR / uploaded_file.name
+        
+        # 🔹 NEW: Check if file already exists
+        if policy_path.exists():
+            st.info("Updating the existing policy document… ♻️")
+        else:
+            st.info("Uploading new policy document… 📄")
 
         with open(policy_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
@@ -72,7 +98,11 @@ with st.sidebar:
             )
 
         st.session_state.policy_processed = True
+        st.session_state.show_policy_success = True
+
+
         st.success("Policy document uploaded and indexed successfully ✅")
+        time.sleep(2)
 
         # Clear uploader + prevent reprocessing
         st.rerun()
