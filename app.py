@@ -185,7 +185,7 @@ for msg in messages:
 if prompt := st.chat_input("Ask something..."):
     with st.chat_message("user"):
         st.markdown(prompt)
-
+    print("User input received:", prompt)
     response = ask_ai(prompt, thread_id)
 
     with st.chat_message("assistant"):

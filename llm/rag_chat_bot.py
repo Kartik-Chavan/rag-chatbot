@@ -92,6 +92,7 @@ def ask_ai(user_input:str,thread_id:str):
         return response_text
     
     except Exception as e:
+        print("Error in ask_ai:", e)
         latency_ms = int((time.time() - start_time) * 1000)
 
         # ❌ Error log
